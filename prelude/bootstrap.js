@@ -2,6 +2,8 @@
 /* eslint-disable no-underscore-dangle */
 /* eslint-disable prefer-rest-params */
 
+/* global EXECPATH_FD */
+/* global PAYLOAD_BASE */
 /* global REQUIRE_COMMON */
 /* global VIRTUAL_FILESYSTEM */
 /* global DEFAULT_ENTRYPOINT */
@@ -157,6 +159,20 @@ function findNativeAddon (path) {
   projector = projectToNearby(path);
   if (require('fs').existsSync(projector)) return projector;
   return null;
+}
+
+// /////////////////////////////////////////////////////////////////
+// PAYLOAD /////////////////////////////////////////////////////////
+// /////////////////////////////////////////////////////////////////
+
+console.log('FIX EXECPATH_FD2');
+var EXECPATH_FD2 = require('fs').openSync(process.execPath, 'r');
+
+function takeFromPayload (pointer) {
+  const result = new Buffer(pointer.w);
+  const pos = PAYLOAD_BASE + pointer.s;
+  require('fs').readSync(EXECPATH_FD2, result, 0, result.length, pos);
+  return result;
 }
 
 // /////////////////////////////////////////////////////////////////
@@ -697,7 +713,7 @@ var modifyNativeAddonWin32 = (function () {
     //     at node.js:1001:3
 
     var entityContent = entity[STORE_CONTENT];
-    if (entityContent) return new Buffer(entityContent); // clone to prevent mutating store
+    if (entityContent) return takeFromPayload(entityContent);
     var entityLinks = entity[STORE_LINKS];
     if (entityLinks) throw error_EISDIR(path);
     throw new Error('UNEXPECTED-20');
@@ -1132,8 +1148,9 @@ var modifyNativeAddonWin32 = (function () {
     if (!entity) return findNativeAddonForInternalModuleStat(path);
     var entityStat = entity[STORE_STAT];
     if (!entityStat) return -ENOENT;
-    if (entityStat.isFileValue) return 0;
-    if (entityStat.isDirectoryValue) return 1;
+    var entityStatValue = JSON.parse(takeFromPayload(entityStat));
+    if (entityStatValue.isFileValue) return 0;
+    if (entityStatValue.isDirectoryValue) return 1;
     return -ENOENT;
   };
 
@@ -1157,8 +1174,8 @@ var modifyNativeAddonWin32 = (function () {
     var entity = VIRTUAL_FILESYSTEM[path];
     if (!entity) return undefined;
     var entityContent = entity[STORE_CONTENT];
-    if (!Buffer.isBuffer(entityContent)) return undefined;
-    return entityContent.toString();
+    if (!entityContent) return undefined;
+    return takeFromPayload(entityContent).toString();
   };
 }());
 
@@ -1236,7 +1253,7 @@ var modifyNativeAddonWin32 = (function () {
     var entity = VIRTUAL_FILESYSTEM[filename];
 
     if (!entity) {
-      // var user try to "_compile" a packaged file
+      // let user try to "_compile" a packaged file
       return ancestor._compile.apply(this, arguments);
     }
 
