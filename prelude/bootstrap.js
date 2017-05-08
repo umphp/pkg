@@ -792,7 +792,7 @@ var modifyNativeAddonWin32 = (function () {
     var entity = VIRTUAL_FILESYSTEM[path];
     if (!entity) throw error_ENOENT('Directory', path);
     var entityLinks = entity[STORE_LINKS];
-    if (entityLinks) return entityLinks.concat(readdirMountpoints(path)); // immutable concat to prevent mutating store
+    if (entityLinks) return JSON.parse(takeFromPayload(entityLinks)).concat(readdirMountpoints(path));
     var entityCode = entity[STORE_CODE];
     if (entityCode) throw error_ENOTDIR(path);
     var entityContent = entity[STORE_CONTENT];
@@ -876,7 +876,7 @@ var modifyNativeAddonWin32 = (function () {
     if (typeof number !== 'number') throw new Error('UNEXPECTED-30');
   }
 
-  function restoreStat (restore) {
+  function restore (restore) {
     assertNumber(restore.atime);
     restore.atime = new Date(restore.atime);
     assertNumber(restore.mtime);
@@ -898,6 +898,8 @@ var modifyNativeAddonWin32 = (function () {
     restore.isFIFO = function () {
       return false;
     };
+
+    return restore;
   }
 
   function findNativeAddonForStat (path_) {
@@ -913,9 +915,7 @@ var modifyNativeAddonWin32 = (function () {
     if (!entity) return findNativeAddonForStat(path);
     var entityStat = entity[STORE_STAT];
     if (!entityStat) throw new Error('UNEXPECTED-35');
-    var restore = JSON.parse(JSON.stringify(entityStat)); // clone to prevent mutating store
-    restoreStat(restore);
-    return restore;
+    return restore(JSON.parse(takeFromPayload(entityStat)));
   }
 
   fs.statSync = function (path) {
@@ -995,9 +995,7 @@ var modifyNativeAddonWin32 = (function () {
     var entity = dock.entity;
     var entityStat = entity[STORE_STAT];
     if (!entityStat) throw new Error('UNEXPECTED-40');
-    var restore = JSON.parse(JSON.stringify(entityStat)); // clone to prevent mutating store
-    restoreStat(restore);
-    return restore;
+    return restore(JSON.parse(takeFromPayload(entityStat)));
   }
 
   fs.fstatSync = function (fd) {
