@@ -697,6 +697,8 @@ var modifyNativeAddonWin32 = (function () {
     // console.log("readFileFromSnapshot", path);
     var entity = VIRTUAL_FILESYSTEM[path];
     if (!entity) throw error_ENOENT('File', path);
+    var entityLinks = entity[STORE_LINKS];
+    if (entityLinks) throw error_EISDIR(path);
     var entityContent = entity[STORE_CONTENT];
     if (entityContent) return takeFromPayload(entityContent);
     var entityCode = entity[STORE_CODE];
@@ -714,8 +716,6 @@ var modifyNativeAddonWin32 = (function () {
     //     at startup (node.js:140:18)
     //     at node.js:1001:3
 
-    var entityLinks = entity[STORE_LINKS];
-    if (entityLinks) throw error_EISDIR(path);
     throw new Error('UNEXPECTED-20');
   }
 
@@ -791,12 +791,12 @@ var modifyNativeAddonWin32 = (function () {
     // console.log("readdirFromSnapshot", path);
     var entity = VIRTUAL_FILESYSTEM[path];
     if (!entity) throw error_ENOENT('Directory', path);
-    var entityLinks = entity[STORE_LINKS];
-    if (entityLinks) return JSON.parse(takeFromPayload(entityLinks)).concat(readdirMountpoints(path));
     var entityCode = entity[STORE_CODE];
     if (entityCode) throw error_ENOTDIR(path);
     var entityContent = entity[STORE_CONTENT];
     if (entityContent) throw error_ENOTDIR(path);
+    var entityLinks = entity[STORE_LINKS];
+    if (entityLinks) return JSON.parse(takeFromPayload(entityLinks)).concat(readdirMountpoints(path));
     throw new Error('UNEXPECTED-25');
   }
 
@@ -876,30 +876,30 @@ var modifyNativeAddonWin32 = (function () {
     if (typeof number !== 'number') throw new Error('UNEXPECTED-30');
   }
 
-  function restore (restore) {
-    assertNumber(restore.atime);
-    restore.atime = new Date(restore.atime);
-    assertNumber(restore.mtime);
-    restore.mtime = new Date(restore.mtime);
-    assertNumber(restore.ctime);
-    restore.ctime = new Date(restore.ctime);
-    assertNumber(restore.birthtime);
-    restore.birthtime = new Date(restore.birthtime);
+  function restore (s) {
+    assertNumber(s.atime);
+    s.atime = new Date(s.atime);
+    assertNumber(s.mtime);
+    s.mtime = new Date(s.mtime);
+    assertNumber(s.ctime);
+    s.ctime = new Date(s.ctime);
+    assertNumber(s.birthtime);
+    s.birthtime = new Date(s.birthtime);
 
-    restore.isFile = function () {
+    s.isFile = function () {
       return this.isFileValue;
     };
-    restore.isDirectory = function () {
+    s.isDirectory = function () {
       return this.isDirectoryValue;
     };
-    restore.isSymbolicLink = function () {
+    s.isSymbolicLink = function () {
       return false;
     };
-    restore.isFIFO = function () {
+    s.isFIFO = function () {
       return false;
     };
 
-    return restore;
+    return s;
   }
 
   function findNativeAddonForStat (path_) {
@@ -914,8 +914,8 @@ var modifyNativeAddonWin32 = (function () {
     var entity = VIRTUAL_FILESYSTEM[path];
     if (!entity) return findNativeAddonForStat(path);
     var entityStat = entity[STORE_STAT];
-    if (!entityStat) throw new Error('UNEXPECTED-35');
-    return restore(JSON.parse(takeFromPayload(entityStat)));
+    if (entityStat) return restore(JSON.parse(takeFromPayload(entityStat)));
+    throw new Error('UNEXPECTED-35');
   }
 
   fs.statSync = function (path) {
@@ -994,8 +994,8 @@ var modifyNativeAddonWin32 = (function () {
     var dock = docks[fd];
     var entity = dock.entity;
     var entityStat = entity[STORE_STAT];
-    if (!entityStat) throw new Error('UNEXPECTED-40');
-    return restore(JSON.parse(takeFromPayload(entityStat)));
+    if (entityStat) return restore(JSON.parse(takeFromPayload(entityStat)));
+    throw new Error('UNEXPECTED-40');
   }
 
   fs.fstatSync = function (fd) {
