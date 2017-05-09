@@ -165,13 +165,10 @@ function findNativeAddon (path) {
 // PAYLOAD /////////////////////////////////////////////////////////
 // /////////////////////////////////////////////////////////////////
 
-console.log('FIX EXECPATH_FD2');
-var EXECPATH_FD2 = require('fs').openSync(process.execPath, 'r');
-
 function takeFromPayload (pointer) {
   const result = new Buffer(pointer.w);
   const pos = PAYLOAD_BASE + pointer.s;
-  require('fs').readSync(EXECPATH_FD2, result, 0, result.length, pos);
+  require('fs').readSync(EXECPATH_FD, result, 0, result.length, pos);
   return result;
 }
 
@@ -385,7 +382,7 @@ var modifyNativeAddonWin32 = (function () {
 
 (function () {
   process.pkg = {};
-  process.versions.pkg = '%PKG_VERSION%';
+  process.versions.pkg = '%VERSION%';
   process.pkg.mount = createMountpoint;
   process.pkg.entrypoint = ENTRYPOINT;
   process.pkg.defaultEntrypoint = DEFAULT_ENTRYPOINT;
