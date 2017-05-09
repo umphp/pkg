@@ -166,8 +166,8 @@ function findNativeAddon (path) {
 // /////////////////////////////////////////////////////////////////
 
 function takeFromPayload (pointer) {
-  const result = new Buffer(pointer.w);
-  const pos = PAYLOAD_BASE + pointer.s;
+  var result = new Buffer(pointer.w);
+  var pos = PAYLOAD_BASE + pointer.s;
   require('fs').readSync(EXECPATH_FD, result, 0, result.length, pos);
   return result;
 }
