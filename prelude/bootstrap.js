@@ -1257,10 +1257,22 @@ var modifyNativeAddonWin32 = (function () {
 
     if (entityCode) {
       if (entityContent) throw new Error('UNEXPECTED-45');
+
+      var options = {
+        filename: filename,
+        lineOffset: 0,
+        displayErrors: true,
+        cachedData: takeFromPayload(entityCode),
+        sourceless: true
+      };
+
+      var Script = require('vm').Script;
+      var script = new Script(undefined, options);
+      var wrapper = script.runInThisContext(options);
       var dirname = require('path').dirname(filename);
       var rqfn = makeRequireFunction.call(this);
       var args = [ this.exports, rqfn, this, filename, dirname ];
-      return entityCode.apply(this.exports, args);
+      return wrapper.apply(this.exports, args);
     }
 
     if (entityContent) {
