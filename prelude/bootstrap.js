@@ -569,10 +569,10 @@ var modifyNativeAddonWin32 = (function () {
 
     var dock = docks[fd];
     var entity = dock.entity;
-    var entityContent = entity[STORE_CONTENT];
-    if (entityContent) return readFromSnapshotSub(dock, entityContent, buffer, offset, length, position);
     var entityLinks = entity[STORE_LINKS];
     if (entityLinks) throw error_EISDIR(dock.path);
+    var entityContent = entity[STORE_CONTENT];
+    if (entityContent) return readFromSnapshotSub(dock, entityContent, buffer, offset, length, position);
     throw new Error('UNEXPECTED-15');
   }
 
