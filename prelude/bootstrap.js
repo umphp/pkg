@@ -165,9 +165,9 @@ function findNativeAddon (path) {
 // PAYLOAD /////////////////////////////////////////////////////////
 // /////////////////////////////////////////////////////////////////
 
-function payloadBufferSync (pointer, buffer) {
+function payloadBufferSync (offset, buffer) {
   var size = buffer.length;
-  var payloadPos = PAYLOAD_BASE + pointer.s;
+  var payloadPos = PAYLOAD_BASE + offset;
   var bufferPos = 0;
   var bytesRead;
   do {
@@ -179,8 +179,8 @@ function payloadBufferSync (pointer, buffer) {
 }
 
 function payloadFileSync (pointer) {
-  var buffer = new Buffer(pointer.w);
-  payloadBufferSync(pointer, buffer);
+  var buffer = new Buffer(pointer[1]);
+  payloadBufferSync(pointer[0], buffer);
   return buffer;
 }
 
