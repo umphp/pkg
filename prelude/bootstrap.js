@@ -166,6 +166,7 @@ function findNativeAddon (path) {
 // /////////////////////////////////////////////////////////////////
 
 function payloadCopySync (source, target, targetStart, sourceStart, sourceEnd) {
+  if (sourceEnd >= source[1]) sourceEnd = source[1];
   var payloadPos = PAYLOAD_BASE + source[0] + sourceStart;
   var targetPos = targetStart;
   var targetEnd = targetStart + sourceEnd - sourceStart;
@@ -571,7 +572,6 @@ var modifyNativeAddonWin32 = (function () {
     if ((p === null) || (typeof p === 'undefined')) p = dock.position;
     if (p >= entityContent[1]) return 0;
     var end = p + length;
-    if (end >= entityContent[1]) end = entityContent[1];
     var result = payloadCopySync(entityContent, buffer, offset, p, end);
     dock.position = end;
     return result;
