@@ -168,14 +168,14 @@ function findNativeAddon (path) {
 function payloadCopySync (source, target, targetStart, sourceStart, sourceEnd) {
   var payloadPos = PAYLOAD_BASE + source[0] + sourceStart;
   var targetPos = targetStart;
-  var size = sourceEnd - sourceStart;
+  var targetEnd = targetStart + sourceEnd - sourceStart;
   var bytesRead;
   do {
     bytesRead = require('fs').readSync(
-      EXECPATH_FD, target, targetPos, size - targetPos, payloadPos);
+      EXECPATH_FD, target, targetPos, targetEnd - targetPos, payloadPos);
     payloadPos += bytesRead;
     targetPos += bytesRead;
-  } while (bytesRead !== 0 && targetPos < size);
+  } while (bytesRead !== 0 && targetPos < targetEnd);
 }
 
 function payloadFileSync (pointer) {
@@ -569,7 +569,7 @@ var modifyNativeAddonWin32 = (function () {
     if (p >= entityContent[1]) return 0;
     var end = p + length;
     if (end >= entityContent[1]) end = entityContent[1];
-    var result = entityContent.copy(buffer, offset, p, end);
+    var result = payloadCopySync(entityContent, buffer, offset, p, end);
     dock.position = end;
     return result;
   }
