@@ -165,10 +165,18 @@ function findNativeAddon (path) {
 // PAYLOAD /////////////////////////////////////////////////////////
 // /////////////////////////////////////////////////////////////////
 
-function takeFromPayload (pointer) {
-  var result = new Buffer(pointer.w);
-  var pos = PAYLOAD_BASE + pointer.s;
-  require('fs').readSync(EXECPATH_FD, result, 0, result.length, pos);
+function payloadFileSync (pointer) {
+  var size = pointer.w;
+  var result = new Buffer(size);
+  var payloadPos = PAYLOAD_BASE + pointer.s;
+  var resultPos = 0;
+  var bytesRead;
+  do {
+    bytesRead = require('fs').readSync(
+      EXECPATH_FD, result, resultPos, size - resultPos, payloadPos);
+    payloadPos += bytesRead;
+    resultPos += bytesRead;
+  } while (bytesRead !== 0 && resultPos < size);
   return result;
 }
 
@@ -697,7 +705,7 @@ var modifyNativeAddonWin32 = (function () {
     var entityLinks = entity[STORE_LINKS];
     if (entityLinks) throw error_EISDIR(path);
     var entityContent = entity[STORE_CONTENT];
-    if (entityContent) return takeFromPayload(entityContent);
+    if (entityContent) return payloadFileSync(entityContent);
     var entityCode = entity[STORE_CODE];
     if (entityCode) return new Buffer('source-code-not-available');
 
@@ -793,7 +801,7 @@ var modifyNativeAddonWin32 = (function () {
     var entityContent = entity[STORE_CONTENT];
     if (entityContent) throw error_ENOTDIR(path);
     var entityLinks = entity[STORE_LINKS];
-    if (entityLinks) return JSON.parse(takeFromPayload(entityLinks)).concat(readdirMountpoints(path));
+    if (entityLinks) return JSON.parse(payloadFileSync(entityLinks)).concat(readdirMountpoints(path));
     throw new Error('UNEXPECTED-25');
   }
 
@@ -911,7 +919,7 @@ var modifyNativeAddonWin32 = (function () {
     var entity = VIRTUAL_FILESYSTEM[path];
     if (!entity) return findNativeAddonForStat(path);
     var entityStat = entity[STORE_STAT];
-    if (entityStat) return restore(JSON.parse(takeFromPayload(entityStat)));
+    if (entityStat) return restore(JSON.parse(payloadFileSync(entityStat)));
     throw new Error('UNEXPECTED-35');
   }
 
@@ -991,7 +999,7 @@ var modifyNativeAddonWin32 = (function () {
     var dock = docks[fd];
     var entity = dock.entity;
     var entityStat = entity[STORE_STAT];
-    if (entityStat) return restore(JSON.parse(takeFromPayload(entityStat)));
+    if (entityStat) return restore(JSON.parse(payloadFileSync(entityStat)));
     throw new Error('UNEXPECTED-40');
   }
 
@@ -1143,7 +1151,7 @@ var modifyNativeAddonWin32 = (function () {
     if (!entity) return findNativeAddonForInternalModuleStat(path);
     var entityStat = entity[STORE_STAT];
     if (!entityStat) return -ENOENT;
-    var entityStatValue = JSON.parse(takeFromPayload(entityStat));
+    var entityStatValue = JSON.parse(payloadFileSync(entityStat));
     if (entityStatValue.isFileValue) return 0;
     if (entityStatValue.isDirectoryValue) return 1;
     return -ENOENT;
@@ -1170,7 +1178,7 @@ var modifyNativeAddonWin32 = (function () {
     if (!entity) return undefined;
     var entityContent = entity[STORE_CONTENT];
     if (!entityContent) return undefined;
-    return takeFromPayload(entityContent).toString();
+    return payloadFileSync(entityContent).toString();
   };
 }());
 
@@ -1262,7 +1270,7 @@ var modifyNativeAddonWin32 = (function () {
         filename: filename,
         lineOffset: 0,
         displayErrors: true,
-        cachedData: takeFromPayload(entityCode),
+        cachedData: payloadFileSync(entityCode),
         sourceless: true
       };
 
