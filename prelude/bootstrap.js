@@ -169,13 +169,16 @@ function payloadCopySync (source, target, targetStart, sourceStart, sourceEnd) {
   var payloadPos = PAYLOAD_BASE + source[0] + sourceStart;
   var targetPos = targetStart;
   var targetEnd = targetStart + sourceEnd - sourceStart;
+  var bytesReadSum = 0;
   var bytesRead;
   do {
     bytesRead = require('fs').readSync(
       EXECPATH_FD, target, targetPos, targetEnd - targetPos, payloadPos);
     payloadPos += bytesRead;
     targetPos += bytesRead;
+    bytesReadSum += bytesRead;
   } while (bytesRead !== 0 && targetPos < targetEnd);
+  return bytesRead;
 }
 
 function payloadFileSync (pointer) {
