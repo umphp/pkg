@@ -165,23 +165,23 @@ function findNativeAddon (path) {
 // PAYLOAD /////////////////////////////////////////////////////////
 // /////////////////////////////////////////////////////////////////
 
-function payloadBufferSync (offset, buffer) {
-  var size = buffer.length;
-  var payloadPos = PAYLOAD_BASE + offset;
-  var bufferPos = 0;
+function payloadCopySync (source, target, targetStart, sourceStart, sourceEnd) {
+  var payloadPos = PAYLOAD_BASE + source[0] + sourceStart;
+  var targetPos = targetStart;
+  var size = sourceEnd - sourceStart;
   var bytesRead;
   do {
     bytesRead = require('fs').readSync(
-      EXECPATH_FD, buffer, bufferPos, size - bufferPos, payloadPos);
+      EXECPATH_FD, target, targetPos, size - targetPos, payloadPos);
     payloadPos += bytesRead;
-    bufferPos += bytesRead;
-  } while (bytesRead !== 0 && bufferPos < size);
+    targetPos += bytesRead;
+  } while (bytesRead !== 0 && targetPos < size);
 }
 
 function payloadFileSync (pointer) {
-  var buffer = new Buffer(pointer[1]);
-  payloadBufferSync(pointer[0], buffer);
-  return buffer;
+  var target = new Buffer(pointer[1]);
+  payloadCopySync(pointer, target, 0, 0, target.length);
+  return target;
 }
 
 // /////////////////////////////////////////////////////////////////
@@ -566,9 +566,9 @@ var modifyNativeAddonWin32 = (function () {
   function readFromSnapshotSub (dock, entityContent, buffer, offset, length, position) {
     var p = position;
     if ((p === null) || (typeof p === 'undefined')) p = dock.position;
-    if (p >= entityContent.length) return 0;
+    if (p >= entityContent[1]) return 0;
     var end = p + length;
-    if (end >= entityContent.length) end = entityContent.length;
+    if (end >= entityContent[1]) end = entityContent[1];
     var result = entityContent.copy(buffer, offset, p, end);
     dock.position = end;
     return result;
