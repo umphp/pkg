@@ -165,19 +165,23 @@ function findNativeAddon (path) {
 // PAYLOAD /////////////////////////////////////////////////////////
 // /////////////////////////////////////////////////////////////////
 
-function payloadFileSync (pointer) {
-  var size = pointer.w;
-  var result = new Buffer(size);
+function payloadBufferSync (pointer, buffer) {
+  var size = buffer.length;
   var payloadPos = PAYLOAD_BASE + pointer.s;
-  var resultPos = 0;
+  var bufferPos = 0;
   var bytesRead;
   do {
     bytesRead = require('fs').readSync(
-      EXECPATH_FD, result, resultPos, size - resultPos, payloadPos);
+      EXECPATH_FD, buffer, bufferPos, size - bufferPos, payloadPos);
     payloadPos += bytesRead;
-    resultPos += bytesRead;
-  } while (bytesRead !== 0 && resultPos < size);
-  return result;
+    bufferPos += bytesRead;
+  } while (bytesRead !== 0 && bufferPos < size);
+}
+
+function payloadFileSync (pointer) {
+  var buffer = new Buffer(pointer.w);
+  payloadBufferSync(pointer, buffer);
+  return buffer;
 }
 
 // /////////////////////////////////////////////////////////////////
