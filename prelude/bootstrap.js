@@ -180,7 +180,7 @@ function payloadCopySync (source, target, targetStart, sourceStart, sourceEnd) {
     targetPos += bytesRead;
     bytesReadSum += bytesRead;
   } while (bytesRead !== 0 && targetPos < targetEnd);
-  return bytesRead;
+  return bytesReadSum;
 }
 
 function payloadFileSync (pointer) {
