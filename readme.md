@@ -5,7 +5,7 @@
 [![Dependency Status](https://david-dm.org/zeit/pkg/status.svg)](https://david-dm.org/zeit/pkg)
 [![devDependency Status](https://david-dm.org/zeit/pkg/dev-status.svg)](https://david-dm.org/zeit/pkg?type=dev)
 [![Slack Channel](http://zeit-slackin.now.sh/badge.svg)](https://zeit.chat/)
-
+pkg 能够将 Node.js 项目打包为单个可执行文件，其允许开发者发布商业级应用而不用担心源代码泄露的风险。pkg 会自动扫描你的 node_modules，然后将需要用到的本地内容打包到可执行文件中.
 This command line interface enables you to package your Node.js project into an executable that can be run even on devices without Node.js installed.
 
 ## Use Cases
