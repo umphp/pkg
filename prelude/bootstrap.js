@@ -1156,11 +1156,12 @@ var modifyNativeAddonWin32 = (function () {
     // console.log("internalModuleStat", path);
     var entity = VIRTUAL_FILESYSTEM[path];
     if (!entity) return findNativeAddonForInternalModuleStat(path);
-    var entityStat = entity[STORE_STAT];
-    if (!entityStat) return -ENOENT;
-    var entityStatValue = JSON.parse(payloadFileSync(entityStat));
-    if (entityStatValue.isFileValue) return 0;
-    if (entityStatValue.isDirectoryValue) return 1;
+    var entityCode = entity[STORE_CODE];
+    if (entityCode) return 0;
+    var entityContent = entity[STORE_CONTENT];
+    if (entityContent) return 0;
+    var entityLinks = entity[STORE_LINKS];
+    if (entityLinks) return 1;
     return -ENOENT;
   };
 
